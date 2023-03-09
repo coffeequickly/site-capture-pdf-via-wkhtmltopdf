@@ -4,12 +4,14 @@
   "description": "Capture site via wkhtmltopdf + express.js",
   "main": "app.js",
   "dependencies": {
+    "child_process": "^1.0.2",
     "express": "^4.17.2",
-    "child_process": "^1.0.2"
+    "puppeteer": "^19.7.3",
+    "puppeteer-core": "^19.7.3"
   },
   "devDependencies": {
-    "prettier": "^2.8.4",
-    "eslint": "^8.35.0"
+    "eslint": "^8.35.0",
+    "prettier": "^2.8.4"
   },
   "scripts": {
     "start": "node app.js",

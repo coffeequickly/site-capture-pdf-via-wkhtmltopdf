@@ -1,46 +1,33 @@
-FROM amazonlinux:2
+FROM node:16-alpine
 
-RUN yum -y update && yum -y install \
+RUN apk add --no-cache \
     fontconfig \
-    libjpeg-turbo \
-    libpng \
-    libX11 \
-    libXext \
-    tar \
-    wget \
-    gzip \
-    unzip \
-    && yum -y install \
-    gcc-c++ make \
-    && curl -sL https://rpm.nodesource.com/setup_16.x | bash - \
-    && yum install -y nodejs \
-    && npm install -g npm \
-    && yum clean all
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    chromium \
+    nss
 
-RUN yum -y install \
-    ipa-gothic-fonts \
-    libXrender \
-    && fc-cache -fv
+# 일반 사용자 추가
+RUN addgroup -S pdfmaker && adduser -S pdfmaker -G pdfmaker
+
+# 일반 사용자로 전환
+USER pdfmaker
 
 #폰트 설치
 # /statics/fonts 아래에 있는 모든 폰트 설치
 COPY statics/fonts /usr/share/fonts/truetype
 
 
-RUN fc-cache -f && \
-    fc-cache-64 -f
-
-RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox-0.12.6-1.amazonlinux2.x86_64.rpm && \
-    yum -y localinstall wkhtmltox-0.12.6-1.amazonlinux2.x86_64.rpm && \
-    rm wkhtmltox-0.12.6-1.amazonlinux2.x86_64.rpm && \
-    yum clean all
+RUN fc-cache -f
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+RUN yarn install
 COPY . .
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["yarn", "start"]
