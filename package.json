@@ -1,7 +1,7 @@
 {
-  "name": "site-capture-pdf-via-wkhtmltopdf",
+  "name": "url-to-pdf",
   "version": "0.0.1",
-  "description": "Capture site via wkhtmltopdf + express.js",
+  "description": "Enter url, get pdf",
   "main": "app.js",
   "dependencies": {
     "child_process": "^1.0.2",
@@ -16,6 +16,6 @@
   },
   "scripts": {
     "start": "node app.js",
-    "docker-build-image": "docker build -t site-capture-pdf-via-wkhtmltopdf ."
+    "docker-build-image": "docker build -t url-to-pdf ."
   }
 }
