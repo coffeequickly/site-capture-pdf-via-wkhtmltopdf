@@ -1,0 +1,18 @@
+{
+  "name": "site-capture-pdf-via-wkhtmltopdf",
+  "version": "0.0.1",
+  "description": "Capture site via wkhtmltopdf + express.js",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.17.2",
+    "child_process": "^1.0.2"
+  },
+  "devDependencies": {
+    "prettier": "^2.8.4",
+    "eslint": "^8.35.0"
+  },
+  "scripts": {
+    "start": "node app.js",
+    "docker-build-image": "docker build -t site-capture-pdf-via-wkhtmltopdf ."
+  }
+}
