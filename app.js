@@ -1,5 +1,6 @@
 const express = require('express');
 const { Cluster } = require('puppeteer-cluster');
+const { PDFDocument } = require('pdf-lib');
 
 const app = express();
 const port = 3000;
@@ -19,10 +20,6 @@ const config = {
     },
     concurrency: Cluster.CONCURRENCY_BROWSER,
     maxConcurrency: config.maxConcurrency,
-  });
-
-  await cluster.task(async ({ page, data }) => {
-    await page.setViewport({ width: 1920, height: 1080 });
   });
 
   app.get('/pdf', async (req, res) => {
@@ -53,7 +50,15 @@ const config = {
     const taskFunction = async ({ page, data }) => {
       await page.setUserAgent(config.userAgent);
       await page.goto(data, { waitUntil: 'networkidle0', timeout: config.timeout });
-      return await page.pdf({ format: 'A4' });
+      const pdfBuffer = await page.pdf({ format: 'A4' });
+
+      // PDF 메타데이터 수정
+      const pdfDoc = await PDFDocument.load(pdfBuffer);
+      pdfDoc.setCreator('Your Custom Application Name');
+      pdfDoc.setProducer('Your Custom Application Name');
+
+      // 수정된 PDF 반환
+      return await pdfDoc.save();
     };
 
     const pdfBuffer = await cluster.execute(fullUrl, taskFunction);
@@ -79,3 +84,4 @@ const config = {
     process.exit(0);
   });
 })();
+
