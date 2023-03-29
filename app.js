@@ -13,9 +13,6 @@ const config = {
 };
 
 
-
-
-
 (async () => {
   const cluster = await Cluster.launch({
     puppeteerOptions: {
@@ -33,11 +30,17 @@ const config = {
   });
 
   async function updateMetadata(buffer) {
-    const pdfDoc = await PDFDocument.load(buffer);
-    pdfDoc.setProducer('Your Custom Application Name');
-    pdfDoc.setCreator('Your Custom Application Name');
-    return pdfDoc.save();
+    try {
+      const pdfDoc = await PDFDocument.load(buffer);
+      pdfDoc.setProducer('Your Custom Application Name');
+      pdfDoc.setCreator('Your Custom Application Name');
+      return pdfDoc.save();
+    } catch (error) {
+      console.error('Error updating metadata:', error);
+      return buffer; // 원본 버퍼를 반환하여 최소한 원본 PDF를 전송하십시오.
+    }
   }
+
 
   app.get('/pdf', async (req, res) => {
 
@@ -59,8 +62,6 @@ const config = {
       res.status(400).send('Invalid URL');
       return;
     }
-
-
 
 
     const fileName = `${Date.now()}_${fileDomain}.pdf`;
