@@ -51,23 +51,37 @@ const config = {
       await page.setUserAgent(config.userAgent);
       await page.goto(data, { waitUntil: 'networkidle0', timeout: config.timeout });
       const pdfBuffer = await page.pdf({ format: 'A4' });
-
-      // PDF 메타데이터 수정
-      const pdfDoc = await PDFDocument.load(pdfBuffer);
-      pdfDoc.setCreator('Your Custom Application Name');
-      pdfDoc.setProducer('Your Custom Application Name');
-
-      // 수정된 PDF 반환
-      return await pdfDoc.save();
+      //
+      // // PDF 메타데이터 수정
+      // const pdfDoc = await PDFDocument.load(pdfBuffer);
+      //
+      // pdfDoc.setCreator('Your Custom Application Name');
+      // pdfDoc.setProducer('Your Custom Application Name');
+      //
+      // // 수정된 PDF 반환
+      // return await pdfDoc.save();
     };
+
+
 
     const pdfBuffer = await cluster.execute(fullUrl, taskFunction);
 
     clearTimeout(timeoutId);
     if (pdfBuffer) {
+      // PDF 메타데이터 수정
+      const pdfDoc = await PDFDocument.load(pdfBuffer);
+      const [firstPage] = pdfDoc.getPages();
+      pdfDoc.removePage(0);
+
+      pdfDoc.setProducer('Your Custom Application Name');
+      pdfDoc.setCreator('Your Custom Application Name');
+
+      const modifiedPdfBytes = await pdfDoc.save();
+
+
       res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
       res.setHeader('Content-Type', 'application/pdf');
-      res.send(pdfBuffer);
+      res.send(modifiedPdfBytes);
     } else {
       res.status(500).send('Error generating PDF');
     }
