@@ -26,21 +26,22 @@ const config = {
 
   await cluster.task(async ({ page, data }) => {
     await page.setUserAgent(config.userAgent);
-    return await page.pdf({ format: 'A4' });
+    await page.goto(data, { waitUntil: 'networkidle0', timeout: config.timeout });
+    const pdfBuffer = await page.pdf({ format: 'A4' });
+    return pdfBuffer;
   });
 
-  async function updateMetadata(buffer) {
-    // try {
-    //   const pdfDoc = await PDFDocument.load(buffer);
-    //   pdfDoc.setProducer('Your Custom Application Name');
-    //   pdfDoc.setCreator('Your Custom Application Name');
-    //   return pdfDoc.save();
-    // } catch (error) {
-    //   console.error('Error updating metadata:', error);
-    //   return buffer; // 원본 버퍼를 반환하여 최소한 원본 PDF를 전송하십시오.
-    // }
 
-    return buffer;
+  async function updateMetadata(buffer) {
+    try {
+      const pdfDoc = await PDFDocument.load(buffer);
+      pdfDoc.setProducer('Your Custom Application Name');
+      pdfDoc.setCreator('Your Custom Application Name');
+      return pdfDoc.save();
+    } catch (error) {
+      console.error('Error updating metadata:', error);
+      return buffer; // 원본 버퍼를 반환하여 최소한 원본 PDF를 전송하십시오.
+    }
   }
 
 
@@ -71,30 +72,44 @@ const config = {
       res.status(408).send('Request timed out');
     }, config.timeout);
 
-    const taskFunction = async ({ page, data }) => {
-      await page.setUserAgent(config.userAgent);
-      await page.goto(data, { waitUntil: 'networkidle0', timeout: config.timeout });
-      return await page.pdf({ format: 'A4' });
-    };
-
-
     const pdfBuffer = await cluster.execute(fullUrl);
+
 
     clearTimeout(timeoutId);
 
     if (pdfBuffer) {
       const modifiedPdfBytes = await updateMetadata(pdfBuffer);
-      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}`);
       res.setHeader('Content-Type', 'application/pdf');
-      res.send(modifiedPdfBytes);
+      const chunkSize = 2000000; // 2MB
+
+      if (modifiedPdfBytes.byteLength > chunkSize) {
+        const totalChunks = Math.ceil(modifiedPdfBytes.byteLength / chunkSize);
+
+        res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('Content-Length', modifiedPdfBytes.byteLength);
+        res.setHeader('Content-Range', `bytes 0-${modifiedPdfBytes.byteLength - 1}/${modifiedPdfBytes.byteLength}`);
+
+        for (let i = 0; i < totalChunks; i++) {
+          const start = i * chunkSize;
+          const end = (i + 1) * chunkSize;
+          const chunk = modifiedPdfBytes.slice(start, end);
+          res.write(chunk);
+        }
+      } else {
+        res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.send(modifiedPdfBytes);
+      }
     } else {
       res.status(500).send('Error generating PDF');
     }
   });
 
   app.listen(port, () => {
-    console.log(`App listening at http://localhost:${port}`);
-  });
+      console.log(`PDF Maker listening at http://localhost:${port}`);
+    },
+  );
 
   process.on('SIGINT', async () => {
     console.log('Closing browser cluster...');
@@ -103,4 +118,3 @@ const config = {
     process.exit(0);
   });
 })();
-
