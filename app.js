@@ -30,20 +30,21 @@ const config = {
   });
 
   async function updateMetadata(buffer) {
-    try {
-      const pdfDoc = await PDFDocument.load(buffer);
-      pdfDoc.setProducer('Your Custom Application Name');
-      pdfDoc.setCreator('Your Custom Application Name');
-      return pdfDoc.save();
-    } catch (error) {
-      console.error('Error updating metadata:', error);
-      return buffer; // 원본 버퍼를 반환하여 최소한 원본 PDF를 전송하십시오.
-    }
+    // try {
+    //   const pdfDoc = await PDFDocument.load(buffer);
+    //   pdfDoc.setProducer('Your Custom Application Name');
+    //   pdfDoc.setCreator('Your Custom Application Name');
+    //   return pdfDoc.save();
+    // } catch (error) {
+    //   console.error('Error updating metadata:', error);
+    //   return buffer; // 원본 버퍼를 반환하여 최소한 원본 PDF를 전송하십시오.
+    // }
+
+    return buffer;
   }
 
 
   app.get('/pdf', async (req, res) => {
-
 
     const url = req.query.url;
     if (!url) {
