@@ -12,6 +12,10 @@ const config = {
   maxConcurrency: 4,
 };
 
+
+
+
+
 (async () => {
   const cluster = await Cluster.launch({
     puppeteerOptions: {
@@ -22,7 +26,22 @@ const config = {
     maxConcurrency: config.maxConcurrency,
   });
 
+
+  await cluster.task(async ({ page, data }) => {
+    await page.setUserAgent(config.userAgent);
+    return await page.pdf({ format: 'A4' });
+  });
+
+  async function updateMetadata(buffer) {
+    const pdfDoc = await PDFDocument.load(buffer);
+    pdfDoc.setProducer('Your Custom Application Name');
+    pdfDoc.setCreator('Your Custom Application Name');
+    return pdfDoc.save();
+  }
+
   app.get('/pdf', async (req, res) => {
+
+
     const url = req.query.url;
     if (!url) {
       res.status(400).send('Missing url parameter');
@@ -41,6 +60,9 @@ const config = {
       return;
     }
 
+
+
+
     const fileName = `${Date.now()}_${fileDomain}.pdf`;
     const timeoutId = setTimeout(() => {
       console.error('Request timed out');
@@ -54,22 +76,12 @@ const config = {
     };
 
 
-
-    const pdfBuffer = await cluster.execute(fullUrl, taskFunction);
+    const pdfBuffer = await cluster.execute(fullUrl);
 
     clearTimeout(timeoutId);
+
     if (pdfBuffer) {
-      // PDF 메타데이터 수정
-      const pdfDoc = await PDFDocument.load(pdfBuffer);
-      const [firstPage] = pdfDoc.getPages();
-      pdfDoc.removePage(0);
-
-      pdfDoc.setProducer('Your Custom Application Name');
-      pdfDoc.setCreator('Your Custom Application Name');
-
-      const modifiedPdfBytes = await pdfDoc.save();
-
-
+      const modifiedPdfBytes = await updateMetadata(pdfBuffer);
       res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
       res.setHeader('Content-Type', 'application/pdf');
       res.send(modifiedPdfBytes);
