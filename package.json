@@ -12,8 +12,7 @@
   },
   "devDependencies": {
     "eslint": "^8.35.0",
-    "prettier": "^2.8.4",
-    "pdf-lib": "1.17.1"
+    "prettier": "^2.8.4"
   },
   "scripts": {
     "start": "node app.js",
