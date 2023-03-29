@@ -50,16 +50,7 @@ const config = {
     const taskFunction = async ({ page, data }) => {
       await page.setUserAgent(config.userAgent);
       await page.goto(data, { waitUntil: 'networkidle0', timeout: config.timeout });
-      const pdfBuffer = await page.pdf({ format: 'A4' });
-      //
-      // // PDF 메타데이터 수정
-      // const pdfDoc = await PDFDocument.load(pdfBuffer);
-      //
-      // pdfDoc.setCreator('Your Custom Application Name');
-      // pdfDoc.setProducer('Your Custom Application Name');
-      //
-      // // 수정된 PDF 반환
-      // return await pdfDoc.save();
+      return await page.pdf({ format: 'A4' });
     };
 
 
