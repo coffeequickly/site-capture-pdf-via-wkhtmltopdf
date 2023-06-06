@@ -20,12 +20,13 @@ FROM node:18-alpine
 WORKDIR /usr/src/app
 
 # Install Chromium and fonts to support major charsets
-RUN apk update && apk add \
+RUN apk update && apk add --no-cache \
     chromium \
     harfbuzz \
     fontconfig \
     && rm -rf /var/cache/apk/*
 
+# TODO: 폰트 최적화
 RUN wget http://cdn.naver.com/naver/NanumFont/fontfiles/NanumFont_TTF_ALL.zip && \
     unzip NanumFont_TTF_ALL.zip -d NanumFont && \
     rm -f NanumFont_TTF_ALL.zip && \

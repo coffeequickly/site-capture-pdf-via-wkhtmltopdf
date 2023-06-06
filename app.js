@@ -12,8 +12,29 @@ app.get('/', async (req, res) => {
 
   const browser = await puppeteer.launch({
     executablePath: '/usr/bin/chromium-browser',
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--headless',
+      '--hide-scrollbars',
+      '--disable-features=TranslateUI',
+      '--disable-extensions',
+      '--disable-component-extensions-with-background-pages',
+      '--disable-background-networking',
+      '--disable-sync',
+      '--metrics-recording-only',
+      '--disable-default-apps',
+      '--mute-audio',
+      '--no-default-browser-check',
+      '--no-first-run',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding',
+      '--disable-background-timer-throttling',
+      '--force-fieldtrials=*BackgroundTracing/default/',
+    ],
   });
+
+  // TODO : 비밀번호 추가, PDF 정보 수정 등 부가기능 추가.
 
   const page = await browser.newPage();
   await page.goto(url, { waitUntil: 'networkidle2' });
