@@ -1,14 +1,12 @@
 {
-  "name": "url-to-pdf",
+  "name": "webpage-to-pdf",
   "version": "0.0.1",
   "description": "Enter url, get pdf",
   "main": "app.js",
   "dependencies": {
-    "child_process": "^1.0.2",
-    "express": "^4.17.2",
-    "puppeteer": "^12.0.0",
-    "puppeteer-cluster": "^0.23.0",
-    "puppeteer-core": "^12.0.0"
+    "express": "^4.18.2",
+    "puppeteer-core": "^20.5.0",
+    "wkhtmltopdf": "^0.4.0"
   },
   "devDependencies": {
     "eslint": "^8.35.0",
@@ -16,6 +14,6 @@
   },
   "scripts": {
     "start": "node app.js",
-    "docker-build-image": "docker build -t url-to-pdf ."
+    "docker-build-image": "docker build -t webpage-to-pdf ."
   }
 }

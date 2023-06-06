@@ -1,17 +1,31 @@
-FROM node:alpine
+# Stage 1: Build the application
+FROM node:18 as build
 
-RUN apk add --no-cache \
-    fontconfig \
-    freetype \
-    harfbuzz \
-    unzip \
-    ca-certificates \
-    ttf-freefont \
+# Set the working directory in the container
+WORKDIR /usr/src/app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
+RUN npm i --only=production
+
+# Copy the rest of the application
+COPY . .
+
+# Stage 2: Create the production image
+FROM node:18-alpine
+
+# Set the working directory in the container
+WORKDIR /usr/src/app
+
+# Install Chromium and fonts to support major charsets
+RUN apk update && apk add \
     chromium \
-    nss \
-    yarn
+    harfbuzz \
+    fontconfig \
+    && rm -rf /var/cache/apk/*
 
-# 폰트 설치
 RUN wget http://cdn.naver.com/naver/NanumFont/fontfiles/NanumFont_TTF_ALL.zip && \
     unzip NanumFont_TTF_ALL.zip -d NanumFont && \
     rm -f NanumFont_TTF_ALL.zip && \
@@ -19,20 +33,14 @@ RUN wget http://cdn.naver.com/naver/NanumFont/fontfiles/NanumFont_TTF_ALL.zip &&
 
 RUN fc-cache -f
 
-# 일반 사용자 추가
-RUN addgroup -S pdfmaker && adduser -S pdfmaker -G pdfmaker
+# Set the Chromium path
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-# 프로젝트 폴더 생성 및 권한 설정
-RUN mkdir /app && chown pdfmaker:pdfmaker /app
-WORKDIR /app
+# Copy the built application from the previous stage
+COPY --from=build /usr/src/app .
 
-# pdfmaker 사용자로 전환
-USER pdfmaker
-
-COPY package*.json ./
-RUN yarn install --pure-lockfile
-COPY . .
-
+# Expose port 3000
 EXPOSE 3000
 
-CMD ["yarn", "start"]
+# Start the application
+CMD [ "node", "app.js" ]
