@@ -12,48 +12,52 @@ app.get('/', async (req, res) => {
 
   console.info(`Requesting ${url}`);
 
-  const browser = await puppeteer.launch({
-    executablePath: '/usr/bin/chromium-browser',
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--headless',
-      '--hide-scrollbars',
-      '--disable-features=TranslateUI',
-      '--disable-extensions',
-      '--disable-component-extensions-with-background-pages',
-      '--disable-background-networking',
-      '--disable-sync',
-      '--metrics-recording-only',
-      '--disable-default-apps',
-      '--mute-audio',
-      '--no-default-browser-check',
-      '--no-first-run',
-      '--disable-backgrounding-occluded-windows',
-      '--disable-renderer-backgrounding',
-      '--disable-background-timer-throttling',
-      '--force-fieldtrials=*BackgroundTracing/default/',
-    ],
-  });
+  try {
+    const browser = await puppeteer.launch({
+      executablePath: '/usr/bin/chromium-browser',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--headless',
+        '--hide-scrollbars',
+        '--disable-features=TranslateUI',
+        '--disable-extensions',
+        '--disable-component-extensions-with-background-pages',
+        '--disable-background-networking',
+        '--disable-sync',
+        '--metrics-recording-only',
+        '--disable-default-apps',
+        '--mute-audio',
+        '--no-default-browser-check',
+        '--no-first-run',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-background-timer-throttling',
+        '--force-fieldtrials=*BackgroundTracing/default/',
+      ],
+    });
 
-  // TODO : 비밀번호 추가, PDF 정보 수정 등 부가기능 추가.
+    // TODO : 비밀번호 추가, PDF 정보 수정 등 부가기능 추가.
 
-  const page = await browser.newPage();
-  await page.goto(url, { waitUntil: 'networkidle2' });
-  
-  
-  // 폰트 렌더링 대기
-  await page.evaluate(async () => {
-    const fontFaces = Array.from(document.fonts.values());
-    await Promise.all(fontFaces.map(font => font.load()));
-  });
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: 'networkidle2' });
 
-  const pdf = await page.pdf({ format: 'A4' });
+    // 폰트 렌더링 대기
+    await page.evaluate(async () => {
+      const fontFaces = Array.from(document.fonts.values());
+      await Promise.all(fontFaces.map(font => font.load()));
+    });
 
-  await browser.close();
+    const pdf = await page.pdf({ format: 'A4' });
 
-  res.set({ 'Content-Type': 'application/pdf', 'Content-Length': pdf.length });
-  res.send(pdf);
+    await browser.close();
+
+    res.set({ 'Content-Type': 'application/pdf', 'Content-Length': pdf.length });
+    res.send(pdf);
+  } catch (error) {
+    console.error('An error occurred:', error);
+    res.status(500).send({ error: 'Internal server error' });
+  }
 });
 
 app.listen(port, () => {
