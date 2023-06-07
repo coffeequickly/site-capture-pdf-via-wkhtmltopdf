@@ -10,6 +10,8 @@ app.get('/', async (req, res) => {
     return res.status(400).send({ error: 'Missing url' });
   }
 
+  console.info(`Requesting ${url}`);
+
   const browser = await puppeteer.launch({
     executablePath: '/usr/bin/chromium-browser',
     args: [
@@ -38,6 +40,13 @@ app.get('/', async (req, res) => {
 
   const page = await browser.newPage();
   await page.goto(url, { waitUntil: 'networkidle2' });
+  
+  
+  // 폰트 렌더링 대기
+  await page.evaluate(async () => {
+    const fontFaces = Array.from(document.fonts.values());
+    await Promise.all(fontFaces.map(font => font.load()));
+  });
 
   const pdf = await page.pdf({ format: 'A4' });
 
