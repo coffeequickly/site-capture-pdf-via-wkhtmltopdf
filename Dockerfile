@@ -12,7 +12,13 @@ WORKDIR /usr/src/app
 RUN apk update && apk add --no-cache \
     chromium \
     harfbuzz \
+    fontconfig \
     && rm -rf /var/cache/apk/*
+
+# Stage 3: Additional default fonts
+COPY ./fonts /usr/share/fonts/
+RUN fc-cache -f -v
+
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
