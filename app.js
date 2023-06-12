@@ -1,7 +1,10 @@
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer-extra');
 const express = require('express');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const app = express();
 const port = process.env.PORT || 3000;
+
+puppeteer.use(StealthPlugin());
 
 app.get('/', async (req, res) => {
   const { url } = req.query;
@@ -14,6 +17,8 @@ app.get('/', async (req, res) => {
 
   try {
     const browser = await puppeteer.launch({
+      headless: 'new',
+      ignoreHTTPSErrors: true,
       executablePath: '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox',
@@ -37,24 +42,21 @@ app.get('/', async (req, res) => {
       ],
     });
 
-
-
     // TODO : 비밀번호 추가, PDF 정보 수정 등 부가기능 추가.
 
     const page = await browser.newPage();
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36');
+    await page.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+    );
+
     await page.setExtraHTTPHeaders({
-      'ngrok-skip-browser-warning': 'ok'
+      'ngrok-skip-browser-warning': 'ok',
     });
 
+    await page.goto(url, { waitUntil: 'networkidle2', timeout: 15 * 1000 });
 
-    await page.goto(url, { waitUntil: 'domcontentloaded' });
-
-    // 폰트 렌더링 대기
-    await page.evaluate(async () => {
-      const fontFaces = Array.from(document.fonts.values());
-      await Promise.all(fontFaces.map(font => font.load()));
-    });
+    // additional wait 5 seconds
+    new Promise((r) => setTimeout(r, 10000));
 
     const pdf = await page.pdf({ format: 'A4' });
 
@@ -64,7 +66,7 @@ app.get('/', async (req, res) => {
     res.send(pdf);
   } catch (error) {
     console.error('An error occurred:', error);
-    res.status(500).send({ error: 'Internal server error' });
+    res.status(500).send({ error: JSON.stringify(error) });
   }
 });
 
