@@ -42,14 +42,13 @@ app.get('/', async (req, res) => {
     // TODO : 비밀번호 추가, PDF 정보 수정 등 부가기능 추가.
 
     const page = await browser.newPage();
-
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36');
     await page.setExtraHTTPHeaders({
-      'ngrok-skip-browser-warning': 'true'
+      'ngrok-skip-browser-warning': 'ok'
     });
 
 
-    await page.goto(url, { waitUntil: 'networkidle2' });
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
 
     // 폰트 렌더링 대기
     await page.evaluate(async () => {
